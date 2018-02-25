@@ -31,11 +31,6 @@ my_ts
 #Plotting the GDP_current_prices
 autoplot(my_ts)
 
-# they dont look like white noise, they seem to be
-# correlated and they are not normally distributed
-# The Ljung-Box test is below 0.05
-
-
 ### DIDN'T USE IT ###
 
 # Creating a subset function (look here:
@@ -59,11 +54,23 @@ autoplot(my_ts)
 ###
 
 # Checking the residuals
-my_ts %>% naive(h=3) %>% checkresiduals()
-my_ts %>% meanf(h=3) %>% checkresiduals()
-my_ts %>% forecast(h=3) %>% checkresiduals()
+my_ts %>% naive() %>% checkresiduals()
 
-# Creating a function that automatically computes time series cross-validation errors
+# The residuals fot the naive model dont look 
+# like white noise, they seem to be
+# correlated and they are not normally distributed
+# The Ljung-Box test is below 0.05
+
+my_ts %>% meanf() %>% checkresiduals()
+# Same applie for the mean model..
+
+my_ts %>% forecast() %>% checkresiduals()
+my_ts %>% auto.arima() %>% checkresiduals()
+# ..but for arima and ets models the errors seems like 
+# Gaussian white noise
+
+# Creating a function that automatically computes time series 
+# cross-validation errors
 my_forecast <- function(my_timeseries, for_model, n_period_for){
 e <- matrix(NA_real_, nrow = length(my_ts), ncol = n_period_for)
 for (h in 1:n_period_for)
@@ -81,16 +88,32 @@ my_forecast(my_ts, meanf, 3)
 # or stlf (if the seasonal period is 13 or more).
 my_forecast(my_ts, forecast, 3)
 
-# Plot the forecasts for different the above models
+# Checking which arima model to fit with auto arima..
+auto.arima(my_ts)
+
+#.. and creating a function that returns the selected arima forecasts:
+which_arima <- function(x, h){forecast(Arima(x, order=c(0,2,0)), h=h)}
+
+my_forecast(my_ts, which_arima, 3)
+
+# Best performing model is the ARIMA one
+# it has the lowest Mean Squarred Errors in 
+# all forecasting steps
+
+# Plotting the forecasts for each of the above models:
 my_ts %>% naive() %>% forecast(h=3) %>% autoplot()
 my_ts %>% meanf() %>% forecast(h=3) %>% autoplot()
-my_ts %>% ets() %>% forecast(h=3) %>% autoplot()
+my_ts %>% forecast(h=3) %>% autoplot()
+my_ts %>% which_arima(h=3) %>% autoplot()
  
-# Getting the forecast
-my_ts %>% naive() %>% forecast(h=3)
-my_ts %>% meanf() %>% forecast(h=3)
-my_ts %>% ets() %>% forecast(h=3)
+# Getting the forecasts
+my_ts %>% naive() %>% forecast(h=3) %>% summary()
+my_ts %>% meanf() %>% forecast(h=3) %>% summary()
+my_ts %>% forecast(h=3) %>% summary()
+my_ts %>% which_arima(h=3) %>% summary()
 
 # Clear all output from the console 
 #cat("\014")
+
+
 
