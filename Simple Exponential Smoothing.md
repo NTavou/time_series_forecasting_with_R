@@ -1,4 +1,4 @@
-##Simple Exponential Smoothing 
+### Simple Exponential Smoothing 
 
 Let's say you have time series data and you would like to forecast its next data points. 
 If your data shows no trend and no seasonality you are good to go by using the simple explonetial smoothing model.
